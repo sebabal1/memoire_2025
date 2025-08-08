@@ -7,7 +7,6 @@ from instances import get_instance_par_categorie
 
 class BinPackingBnB:
     def __init__(self, items: List[int], capacite_max_bac: int):
-        #self.items = sorted(items, reverse=True)  # Tri décroissant pour améliorer l'efficacité
         self.items = items
         self.capacite_max_bac = capacite_max_bac
         self.n_items = len(items)
@@ -20,9 +19,7 @@ class BinPackingBnB:
         if not articles_restants: return 0
     
         poids_total_des_items = sum(articles_restants)
-        # On s'assure qu'au moins un bac est remplit et on fait une division entière pour savoir le nombre de bacs
-        # max(1, (poids_total_des_items + self.capacite_max_bac - 1) // self.capacite_max_bac)
-        #math.ceil((poids_total_des_items / self.capacite_max_bac))
+        
         return max(1, (poids_total_des_items + self.capacite_max_bac - 1) // self.capacite_max_bac)
     
     def can_fit(self, item, bin_contents):
@@ -103,6 +100,7 @@ def print_solution(items, solution, stats, capacite_max_bac, nom_instance):
     
     print(f"Items à emballer : {items}")
     print(f"Capacité des bins : {capacite_max_bac}")
+    print(f"Nombre d'items : {len(items)}")
     print()
     
     if solution:
@@ -121,9 +119,9 @@ def print_solution(items, solution, stats, capacite_max_bac, nom_instance):
     print()
     print("PERFORMANCES :")
     print(f"  Temps CPU : {stats['cpu_time']:.7f} secondes")
-    print(f"  Nombre d'items : {len(items)}")
-    print(f"  Nœuds explorés : {stats['nodes_explored']}")
-    print(f"  Nœuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):.0f}")
+    print(f"  Nombre d'items : {len(items):,}".replace(',', '.'))
+    print(f"  Nœuds explorés : {stats['nodes_explored']:,}".replace(',', '.'))
+    print(f"  Nœuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
 
 # Exemple d'utilisation
 if __name__ == "__main__":
@@ -131,9 +129,20 @@ if __name__ == "__main__":
     print("RÉSULTATS DU BRANCH AND BOUND - BIN PACKING")
     print("=" * 50)
 
-    instance_basic = get_instance_par_categorie('hard')
+    instances = get_instance_par_categorie('basic')
 
-    for i, instance in enumerate(instance_basic, 1):
+    for i, instance in enumerate(instances, 1):
+        try:
+            solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
+            stats = solver.solve()
+            print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
+            print("\n" + "="*70 + "\n")
+        except Exception as e:
+            print(f" Erreur: {e}")
+
+    instances = get_instance_par_categorie('hard')
+
+    for i, instance in enumerate(instances, 1):
         try:
             solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
             stats = solver.solve()

@@ -49,12 +49,17 @@ INSTANCES_HARD = [
     },
     {
         'name': 'Augmentation du nombre d\'items',
-        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1] * 10,
+        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1] * 10, # 16 items * 10 : 160
         'capacite_max_bac': 10,
     },
     {
         'name': 'Augmentation du nombre d\'items',
-        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1] * 20,
+        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1] * 20, # 16 items * 20 : 320
+        'capacite_max_bac': 10,
+    },
+    {
+        'name': 'Augmentation du nombre d\'items',
+        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3] * 7, # 77
         'capacite_max_bac': 10,
     }
 ]  
