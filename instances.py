@@ -5,6 +5,11 @@ INSTANCES_BASIC = [
         'capacite_max_bac': 10
     },
     {
+        'name': 'Petit - 13 items',
+        'items': [8, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1],
+        'capacite_max_bac': 10
+    },
+    {
         'name': 'Petit - items similaires',
         'items': [6, 6, 5, 5, 5, 4, 4, 3],
         'capacite_max_bac': 10,
@@ -31,6 +36,11 @@ INSTANCES_HARD = [
         'name': 'Grandes tailles',
         'items': [18, 17, 16, 15, 14, 8, 7, 6, 5] * 2,
         'capacite_max_bac': 25,
+    },
+    {
+        'name': 'Items de tailles décroissantes',
+        'items': [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+        'capacite_max_bac': 20
     },
     {
         'name': 'Plusieurs items identiques',
@@ -61,6 +71,11 @@ INSTANCES_HARD = [
         'name': 'Augmentation du nombre d\'items',
         'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3] * 7, # 77
         'capacite_max_bac': 10,
+    },
+    {
+        'name': 'Augmentation du nombre d\'items pour branch and cut',
+        'items': [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3] * 50,
+        'capacite_max_bac': 10,
     }
 ]  
 ALL_INSTANCES = {
@@ -75,4 +90,4 @@ def get_instance_par_categorie(categorie='basic'):
         for categorie_instance in ALL_INSTANCES.values():
             instances.extend(categorie_instance)
         return instances
-    return ALL_INSTANCES.get(categorie, [])
+    return ALL_INSTANCES.get(categorie, [])   

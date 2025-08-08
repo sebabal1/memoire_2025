@@ -158,50 +158,53 @@ def print_solution_bnc(items, solution, stats, capacite_max_bac, nom_instance):
     print(nom_instance)
     print("=" * 50)
     
-    print(f"Items à emballer : {items}")
-    print(f"Capacité des bins : {capacite_max_bac}")
+    print(f"Items a emballer : {items}")
+    print(f"Capacite des bins : {capacite_max_bac}")
     print(f"Nombre d'items : {len(items)}")
     print()
     
     if solution:
-        print("Solution trouvée :")
+        print("Solution trouvee :")
         for i, bin_contents in enumerate(solution):
             utilization = sum(bin_contents) / capacite_max_bac * 100
             print(f"  Bin {i+1}: {bin_contents} (utilisation: {utilization:.1f}%)")
         print()
         
         quality = calculate_solution_quality(stats['num_bins'], capacite_max_bac, items)
-        print(f"Nombre de bins utilisés : {stats['num_bins']}")
+        print(f"Nombre de bins utilises : {stats['num_bins']}")
         print(f"Taux d'utilisation moyen : {quality:.2%}")
     else:
-        print("Aucune solution trouvée")
+        print("Aucune solution trouvee")
     
     print()
     print("PERFORMANCES BRANCH AND CUT :")
     print(f"  Temps CPU : {stats['cpu_time']:.7f} secondes")
-    print(f"  Nœuds explorés : {stats['nodes_explored']}")
-    print(f"  Coupes générées : {stats['cuts_added']}")
-    print(f"  Coupes appliquées : {stats['cuts_applied']}")
-    print(f"  Nœuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):.0f}")
+    print(f"  Nombre d'items : {len(items):,}".replace(',', '.'))
+    print(f"  Noeuds explores : {stats['nodes_explored']:,}".replace(',', '.'))
+    print(f"  Noeuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
+    print(f"  Coupes generees : {stats['cuts_added']}")
+    print(f"  Coupes appliquees : {stats['cuts_applied']}")
 
 # Exemple d'utilisation
 if __name__ == "__main__":
     print("=" * 50)
-    print("RÉSULTATS DU BRANCH AND CUT - BIN PACKING")
+    print("RESULTATS DU BRANCH AND CUT - BIN PACKING")
     print("=" * 50)
 
-    # Instance de test
-    instance_bc = {
-        'name': 'Exemple B&C',
-        'items': [7, 7, 7, 7, 7, 7, 7], # 8, 7, 5, 3, 3, 6, 2, 1
-        'capacite_max_bac': 10
-    }
-
-    instance_bc = get_instance_par_categorie('basic')
+    instance = get_instance_par_categorie('basic')
     
     # Test Branch and Cut seul
-    print("TEST BRANCH AND CUT:")
-    for i, instance in enumerate(instance_bc, 1):
+    print("BRANCH AND CUT BASIC:")
+    for i, instance in enumerate(instance, 1):
+        solver_bnc = BinPackingBnC(instance['items'], instance['capacite_max_bac'])
+        stats_bnc = solver_bnc.solve()
+        print_solution_bnc(instance['items'], stats_bnc['solution'], stats_bnc, 
+                        instance['capacite_max_bac'], instance['name'])
+        print("\n" + "="*80 + "\n")
+
+    print("BRANCH AND CUT HARD:")
+    instance = get_instance_par_categorie('hard')
+    for i, instance in enumerate(instance, 1):
         solver_bnc = BinPackingBnC(instance['items'], instance['capacite_max_bac'])
         stats_bnc = solver_bnc.solve()
         print_solution_bnc(instance['items'], stats_bnc['solution'], stats_bnc, 

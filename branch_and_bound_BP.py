@@ -98,39 +98,39 @@ def print_solution(items, solution, stats, capacite_max_bac, nom_instance):
     print(nom_instance)
     print("=" * 50)
     
-    print(f"Items à emballer : {items}")
-    print(f"Capacité des bins : {capacite_max_bac}")
+    print(f"Items a emballer : {items}")
+    print(f"Capacite des bins : {capacite_max_bac}")
     print(f"Nombre d'items : {len(items)}")
     print()
     
     if solution:
-        print("Solution trouvée :")
+        print("Solution trouvee :")
         for i, bin_contents in enumerate(solution):
             utilization = sum(bin_contents) / capacite_max_bac * 100
             print(f"  Bin {i+1}: {bin_contents} (utilisation: {utilization:.1f}%)")
         print()
         
         quality = calculate_solution_quality(stats['num_bins'], capacite_max_bac, items)
-        print(f"Nombre de bins utilisés : {stats['num_bins']}")
+        print(f"Nombre de bins utilises : {stats['num_bins']}")
         print(f"Taux d'utilisation moyen : {quality:.2%}")
     else:
-        print("Aucune solution trouvée")
+        print("Aucune solution trouvee")
     
     print()
     print("PERFORMANCES :")
     print(f"  Temps CPU : {stats['cpu_time']:.7f} secondes")
     print(f"  Nombre d'items : {len(items):,}".replace(',', '.'))
-    print(f"  Nœuds explorés : {stats['nodes_explored']:,}".replace(',', '.'))
-    print(f"  Nœuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
+    print(f"  Noeuds explores : {stats['nodes_explored']:,}".replace(',', '.'))
+    print(f"  Noeuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
 
 # Exemple d'utilisation
 if __name__ == "__main__":
     print("=" * 50)
-    print("RÉSULTATS DU BRANCH AND BOUND - BIN PACKING")
+    print("RESULTATS DU BRANCH AND BOUND - BIN PACKING")
     print("=" * 50)
 
     instances = get_instance_par_categorie('basic')
-
+    print("BRANCH AND BOUND BASIC:")
     for i, instance in enumerate(instances, 1):
         try:
             solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
@@ -140,6 +140,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f" Erreur: {e}")
 
+    print("BRANCH AND BOUND HARD:")
     instances = get_instance_par_categorie('hard')
 
     for i, instance in enumerate(instances, 1):
