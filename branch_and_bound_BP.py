@@ -98,9 +98,9 @@ def print_solution(items, solution, stats, capacite_max_bac, nom_instance):
     print(nom_instance)
     print("=" * 50)
     
-    print(f"Items a emballer : {items}")
+    print(f"Objets a emballer : {items}")
     print(f"Capacite des bins : {capacite_max_bac}")
-    print(f"Nombre d'items : {len(items)}")
+    print(f"Nombre d'objets : {len(items)}")
     print()
     
     if solution:
@@ -117,9 +117,9 @@ def print_solution(items, solution, stats, capacite_max_bac, nom_instance):
         print("Aucune solution trouvee")
     
     print()
-    print("PERFORMANCES :")
+    print("PERFORMANCES BRANCH AND BOUND:")
     print(f"  Temps CPU : {stats['cpu_time']:.7f} secondes")
-    print(f"  Nombre d'items : {len(items):,}".replace(',', '.'))
+    print(f"  Nombre d'objets : {len(items):,}".replace(',', '.'))
     print(f"  Noeuds explores : {stats['nodes_explored']:,}".replace(',', '.'))
     print(f"  Noeuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
 
@@ -129,25 +129,35 @@ if __name__ == "__main__":
     print("RESULTATS DU BRANCH AND BOUND - BIN PACKING")
     print("=" * 50)
 
-    instances = get_instance_par_categorie('basic')
-    print("BRANCH AND BOUND BASIC:")
-    for i, instance in enumerate(instances, 1):
-        try:
-            solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
-            stats = solver.solve()
-            print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
-            print("\n" + "="*70 + "\n")
-        except Exception as e:
-            print(f" Erreur: {e}")
+    instance={
+        'name': 'Items identiques',
+        'items': [7, 5, 3, 3, 2, 2, 1],
+        'capacite_max_bac': 10,
+    }
+    solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
+    stats = solver.solve()
+    print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
+    print("\n" + "="*70 + "\n")
 
-    print("BRANCH AND BOUND HARD:")
-    instances = get_instance_par_categorie('hard')
+    # instances = get_instance_par_categorie('basic')
+    # print("BRANCH AND BOUND BASIC:")
+    # for i, instance in enumerate(instances, 1):
+    #     try:
+    #         solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
+    #         stats = solver.solve()
+    #         print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
+    #         print("\n" + "="*70 + "\n")
+    #     except Exception as e:
+    #         print(f" Erreur: {e}")
 
-    for i, instance in enumerate(instances, 1):
-        try:
-            solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
-            stats = solver.solve()
-            print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
-            print("\n" + "="*70 + "\n")
-        except Exception as e:
-            print(f" Erreur: {e}")
+    # print("BRANCH AND BOUND HARD:")
+    # instances = get_instance_par_categorie('hard')
+
+    # for i, instance in enumerate(instances, 1):
+    #     try:
+    #         solver = BinPackingBnB(instance['items'], instance['capacite_max_bac'])
+    #         stats = solver.solve()
+    #         print_solution(instance['items'], stats['solution'], stats, instance['capacite_max_bac'], instance['name'])
+    #         print("\n" + "="*70 + "\n")
+    #     except Exception as e:
+    #         print(f" Erreur: {e}")

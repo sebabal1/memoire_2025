@@ -158,9 +158,9 @@ def print_solution_bnc(items, solution, stats, capacite_max_bac, nom_instance):
     print(nom_instance)
     print("=" * 50)
     
-    print(f"Items a emballer : {items}")
+    print(f"Objets a emballer : {items}")
     print(f"Capacite des bins : {capacite_max_bac}")
-    print(f"Nombre d'items : {len(items)}")
+    print(f"Nombre d'objets : {len(items)}")
     print()
     
     if solution:
@@ -179,7 +179,7 @@ def print_solution_bnc(items, solution, stats, capacite_max_bac, nom_instance):
     print()
     print("PERFORMANCES BRANCH AND CUT :")
     print(f"  Temps CPU : {stats['cpu_time']:.7f} secondes")
-    print(f"  Nombre d'items : {len(items):,}".replace(',', '.'))
+    print(f"  Nombre d'objets : {len(items):,}".replace(',', '.'))
     print(f"  Noeuds explores : {stats['nodes_explored']:,}".replace(',', '.'))
     print(f"  Noeuds par seconde : {stats['nodes_explored']/max(stats['cpu_time'], 0.0001):,.0f}".replace(',', '.'))
     print(f"  Coupes generees : {stats['cuts_added']}")

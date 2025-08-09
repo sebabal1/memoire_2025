@@ -2,18 +2,21 @@ import random
 import time
 import copy
 from typing import List, Tuple, Dict
+from instances import get_instance_par_categorie
 
 class BinPackingGeneticAlgorithm:
-    def __init__(self, items: List[int], bin_capacity: int, 
-                 population_size: int = 50, max_generations: int = 100,
-                 crossover_rate: float = 0.8, mutation_rate: float = 0.1):
+    def __init__(self, items: List[int], capacite_max_bac: int, 
+                 taille_population: int = 50, max_generations: int = 100,
+                 probabilite_croisement_pc: float = 0.8, probabilite_mutation_pm: float = 0.1, nb_elites: int = 1):
         self.items = items
-        self.bin_capacity = bin_capacity
+        self.capacite_max_bac = capacite_max_bac
         self.n_items = len(items)
-        self.population_size = population_size
+        self.taille_population = taille_population
         self.max_generations = max_generations
-        self.crossover_rate = crossover_rate
-        self.mutation_rate = mutation_rate
+        self.probabilite_croisement_pc = probabilite_croisement_pc
+        self.probabilite_mutation_pm = probabilite_mutation_pm
+        self.nb_elites = nb_elites
+        
         
         # Statistiques
         self.best_fitness_history = []
@@ -27,11 +30,11 @@ class BinPackingGeneticAlgorithm:
         """
         start_time = time.time()
         
-        print(f"Initialisation de l'algorithme génétique...")
-        print(f"Items: {self.items}")
-        print(f"Capacité des bins: {self.bin_capacity}")
-        print(f"Taille de population: {self.population_size}")
-        print(f"Générations max: {self.max_generations}")
+        print(f"Initialisation de l'algorithme genetique...")
+        print(f"Objets: {self.items}")
+        print(f"Capacite des bacs: {self.capacite_max_bac}")
+        print(f"Taille de population: {self.taille_population}")
+        print(f"Generations max: {self.max_generations}")
         
         # 1. Initialisation de la population
         population = self._initialize_population()
@@ -40,11 +43,18 @@ class BinPackingGeneticAlgorithm:
         best_fitness = float('inf')
         
         # 2. Boucle évolutionnaire
+        diversity_history = []
         for generation in range(self.max_generations):
             self.generations_computed = generation + 1
+
+            unique_solutions = len({tuple(ind) for ind in population})
+            diversity_history.append(unique_solutions)
             
             # 3. Évaluation de la population
-            fitness_scores = [self._fitness(individual) for individual in population]
+            fitness_scores = [self._calcul_fitness(individual) for individual in population]
+
+            elite_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i])[:self.nb_elites]
+            elites = [copy.deepcopy(population[i]) for i in elite_indices]
             
             # Mise à jour du meilleur individu
             current_best_idx = fitness_scores.index(min(fitness_scores))
@@ -73,7 +83,7 @@ class BinPackingGeneticAlgorithm:
             mutated_offspring = self._mutation(offspring)
             
             # 7. Remplacement (nouvelle génération)
-            population = mutated_offspring
+            population = elites + mutated_offspring[:self.taille_population - self.nb_elites]
         
         end_time = time.time()
         
@@ -86,9 +96,11 @@ class BinPackingGeneticAlgorithm:
             'final_bins': best_fitness,
             'best_fitness_history': self.best_fitness_history,
             'avg_fitness_history': self.avg_fitness_history,
-            'population_size': self.population_size,
-            'crossover_rate': self.crossover_rate,
-            'mutation_rate': self.mutation_rate
+            'taille_population': self.taille_population,
+            'probabilite_croisement_pc': self.probabilite_croisement_pc,
+            'probabilite_mutation_pm': self.probabilite_mutation_pm,
+            'diversity_history': diversity_history,
+            'items': self.items,
         }
         
         return final_solution, int(best_fitness), stats
@@ -100,7 +112,7 @@ class BinPackingGeneticAlgorithm:
         """
         population = []
         
-        for _ in range(self.population_size):
+        for _ in range(self.taille_population):
             # Créer une permutation aléatoire des indices des items
             individual = list(range(self.n_items))
             random.shuffle(individual)
@@ -108,13 +120,14 @@ class BinPackingGeneticAlgorithm:
         
         return population
     
-    def _fitness(self, individual: List[int]) -> float:
+    def _calcul_fitness(self, individual: List[int]) -> float:
         """
-        Fonction de fitness : nombre de bins utilisés
-        Plus petit = meilleur
+        Fitness = (MaxBinPossibles + 1) - Nombre de bacs utilisés
+        Plus grand = meilleur
         """
         bins = self._chromosome_to_bins(individual)
-        return len(bins)
+        max_bins = len(self.items)  # Max possible: 1 item par bin
+        return (max_bins + 1) - len(bins)
     
     def _chromosome_to_bins(self, chromosome: List[int]) -> List[List[int]]:
         """
@@ -130,7 +143,7 @@ class BinPackingGeneticAlgorithm:
             # Essayer de placer dans un bin existant
             for bin_items in bins:
                 current_load = sum(self.items[idx] for idx in bin_items)
-                if current_load + item_size <= self.bin_capacity:
+                if current_load + item_size <= self.capacite_max_bac:
                     bin_items.append(item_idx)
                     placed = True
                     break
@@ -148,7 +161,7 @@ class BinPackingGeneticAlgorithm:
         selected = []
         tournament_size = 3
         
-        for _ in range(self.population_size):
+        for _ in range(self.taille_population):
             # Sélection par tournoi
             tournament_indices = random.sample(range(len(population)), 
                                              min(tournament_size, len(population)))
@@ -169,13 +182,13 @@ class BinPackingGeneticAlgorithm:
             parent1 = population[i]
             parent2 = population[(i + 1) % len(population)]
             
-            if random.random() < self.crossover_rate:
+            if random.random() < self.probabilite_croisement_pc:
                 child1, child2 = self._order_crossover(parent1, parent2)
                 offspring.extend([child1, child2])
             else:
                 offspring.extend([copy.deepcopy(parent1), copy.deepcopy(parent2)])
         
-        return offspring[:self.population_size]
+        return offspring[:self.taille_population]
     
     def _order_crossover(self, parent1: List[int], parent2: List[int]) -> Tuple[List[int], List[int]]:
         """
@@ -225,7 +238,7 @@ class BinPackingGeneticAlgorithm:
         for individual in population:
             mutated_individual = copy.deepcopy(individual)
             
-            if random.random() < self.mutation_rate:
+            if random.random() < self.probabilite_mutation_pm:
                 # Échanger deux positions aléatoires
                 pos1 = random.randint(0, len(mutated_individual) - 1)
                 pos2 = random.randint(0, len(mutated_individual) - 1)
@@ -236,31 +249,43 @@ class BinPackingGeneticAlgorithm:
         
         return mutated_population
 
-def print_solution(solution: List[List[int]], items: List[int], bin_capacity: int):
+def print_solution(solution: List[List[int]], items: List[int], capacite_max_bac: int):
     """Affiche la solution de manière lisible"""
     print(f"\n=== SOLUTION FINALE ===")
-    print(f"Nombre de bins utilisés: {len(solution)}")
-    print(f"Capacité par bin: {bin_capacity}")
+    print(f"Nombre d'objets utilises: {len(solution)}")
+    print(f"Capacite par bac: {capacite_max_bac}")
     
     total_items = 0
     for i, bin_items in enumerate(solution):
         bin_values = [items[idx] for idx in bin_items]
         total_size = sum(bin_values)
-        utilization = (total_size / bin_capacity) * 100
-        print(f"Bin {i+1}: {bin_values} (total: {total_size}/{bin_capacity}, utilisation: {utilization:.1f}%)")
+        utilization = (total_size / capacite_max_bac) * 100
+        print(f"Bin {i+1}: {bin_values} (total: {total_size}/{capacite_max_bac}, utilisation: {utilization:.1f}%)")
         total_items += len(bin_items)
     
     print(f"Total items placés: {total_items}/{len(items)}")
+    quality = calculate_solution_quality(solution, items, capacite_max_bac)
+    print(f"Taux d'utilisation moyen : {quality:.2%}")
+
+def calculate_solution_quality(solution: List[List[int]], items: List[int], capacite_max_bac: int) -> float:
+    """Calcule le taux d'utilisation moyen des bacs"""
+    if not solution:
+        return 0.0
+    total_utilization = 0
+    for bin_items in solution:
+        bin_weight = sum(items[idx] for idx in bin_items)
+        total_utilization += bin_weight / capacite_max_bac
+    return total_utilization / len(solution)
 
 def print_statistics(stats: Dict):
     """Affiche les statistiques de performance"""
     print(f"\n=== STATISTIQUES ===")
     print(f"Temps CPU: {stats['cpu_time']:.3f} secondes")
-    print(f"Générations calculées: {stats['generations']}")
+    print(f"Generations calculees: {stats['generations']}")
     print(f"Bins dans la solution finale: {stats['final_bins']}")
-    print(f"Taille de population: {stats['population_size']}")
-    print(f"Taux de croisement: {stats['crossover_rate']}")
-    print(f"Taux de mutation: {stats['mutation_rate']}")
+    print(f"Taille de population: {stats['taille_population']}")
+    print(f"Taux de croisement: {stats['probabilite_croisement_pc']}")
+    print(f"Taux de mutation: {stats['probabilite_mutation_pm']}")
     
     if len(stats['best_fitness_history']) > 1:
         improvement = stats['best_fitness_history'][0] - stats['best_fitness_history'][-1]
@@ -268,6 +293,7 @@ def print_statistics(stats: Dict):
     
     print(f"Meilleur fitness final: {stats['best_fitness_history'][-1]}")
     print(f"Fitness moyen final: {stats['avg_fitness_history'][-1]:.2f}")
+    print(f"Diversite finale de la population: {stats['diversity_history'][-1]}")
 
 def plot_evolution(stats: Dict):
     """Affiche l'évolution des fitness (optionnel - nécessite matplotlib)"""
@@ -276,15 +302,26 @@ def plot_evolution(stats: Dict):
         
         generations = range(1, len(stats['best_fitness_history']) + 1)
         
-        plt.figure(figsize=(10, 6))
+       # Graphe principal : fitness
+        plt.figure(figsize=(10, 5))
         plt.plot(generations, stats['best_fitness_history'], 'b-', label='Meilleur fitness', linewidth=2)
         plt.plot(generations, stats['avg_fitness_history'], 'r--', label='Fitness moyen', alpha=0.7)
-        
         plt.xlabel('Génération')
         plt.ylabel('Nombre de bins')
-        plt.title('Évolution de la fitness au cours des générations')
+        plt.title('Évolution du nombre de bins (fitness)')
         plt.legend()
         plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+        
+        # Graphe secondaire : diversité et/ou écart-type
+        plt.figure(figsize=(10, 4))
+        plt.plot(generations, stats['diversity_history'], 'g-.', label='Diversité population')
+        plt.xlabel('Génération')
+        plt.ylabel('Diversité de la population')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
         plt.show()
         
     except ImportError:
@@ -292,63 +329,22 @@ def plot_evolution(stats: Dict):
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    # Exemple 1: Petit problème
-    print("=== EXEMPLE 1 ===")
-    items1 = [7, 5, 3, 3, 2, 2, 1]
-    capacity1 = 10
     
-    ga1 = BinPackingGeneticAlgorithm(
-        items=items1, 
-        bin_capacity=capacity1,
-        population_size=30,
-        max_generations=50,
-        crossover_rate=0.8,
-        mutation_rate=0.1
-    )
+    instances = get_instance_par_categorie('basic')
+
+    for i, instance in enumerate(instances, 1):
+        algo_genetique = BinPackingGeneticAlgorithm(
+            items= instance['items'], 
+            capacite_max_bac= instance['capacite_max_bac'],
+            taille_population=4,
+            max_generations=20,
+            probabilite_croisement_pc=0.7,
+            probabilite_mutation_pm=0.1,
+            nb_elites=2
+        )
+        solution, n_bins, stats = algo_genetique.solve()
+        print_solution(solution, instance['items'], instance['capacite_max_bac'])
+        print_statistics(stats)
+        #plot_evolution(stats)
+
     
-    solution1, n_bins1, stats1 = ga1.solve()
-    print_solution(solution1, items1, capacity1)
-    print_statistics(stats1)
-    
-    print("\n" + "="*60 + "\n")
-    
-    # Exemple 2: Problème plus complexe
-    print("=== EXEMPLE 2 ===")
-    items2 = [8, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1]
-    capacity2 = 12
-    
-    ga2 = BinPackingGeneticAlgorithm(
-        items=items2, 
-        bin_capacity=capacity2,
-        population_size=50,
-        max_generations=100,
-        crossover_rate=0.8,
-        mutation_rate=0.15
-    )
-    
-    solution2, n_bins2, stats2 = ga2.solve()
-    print_solution(solution2, items2, capacity2)
-    print_statistics(stats2)
-    
-    # Affichage optionnel de l'évolution
-    plot_evolution(stats2)
-    
-    print("\n" + "="*60 + "\n")
-    
-    # Exemple 3: Test de performance
-    print("=== EXEMPLE 3 - TEST DE PERFORMANCE ===")
-    items3 = [9, 8, 7, 6, 5, 5, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1]
-    capacity3 = 15
-    
-    ga3 = BinPackingGeneticAlgorithm(
-        items=items3, 
-        bin_capacity=capacity3,
-        population_size=100,
-        max_generations=200,
-        crossover_rate=0.8,
-        mutation_rate=0.1
-    )
-    
-    solution3, n_bins3, stats3 = ga3.solve()
-    print_solution(solution3, items3, capacity3)
-    print_statistics(stats3)
